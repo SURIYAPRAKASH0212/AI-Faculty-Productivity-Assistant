@@ -44,6 +44,8 @@ import {
   LogOut
 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const renderMarkdown = (text) => {
   if (!text) return null;
   // Replace literal \n string escapes if they somehow still exist
@@ -239,7 +241,7 @@ export default function App() {
     setAuthLoading(true);
     setAuthError(null);
     try {
-      const res = await fetch('http://localhost:8000/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -279,7 +281,7 @@ export default function App() {
     setAuthLoading(true);
     setAuthError(null);
     try {
-      const res = await fetch('http://localhost:8000/auth/register', {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -402,7 +404,7 @@ export default function App() {
     setGeneratedLesson(null);
     setLessonError(null);
     try {
-      const response = await fetch('http://localhost:8000/lesson-planner', {
+      const response = await fetch(`${API_BASE_URL}/lesson-planner`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -454,7 +456,7 @@ export default function App() {
     setGeneratedNotes(null);
     setLectureError(null);
     try {
-      const response = await fetch('http://localhost:8000/lecture-notes', {
+      const response = await fetch(`${API_BASE_URL}/lecture-notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -508,7 +510,7 @@ export default function App() {
     setCurrentSlideIndex(0);
     setPresError(null);
     try {
-      const response = await fetch('http://localhost:8000/presentation-builder', {
+      const response = await fetch(`${API_BASE_URL}/presentation-builder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -568,7 +570,7 @@ export default function App() {
         qType = "mixed";
       }
 
-      const response = await fetch('http://localhost:8000/assessment-creator', {
+      const response = await fetch(`${API_BASE_URL}/assessment-creator`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -632,7 +634,7 @@ export default function App() {
     setGeneratedRubric(null);
     setRubricError(null);
     try {
-      const response = await fetch('http://localhost:8000/rubric-generator', {
+      const response = await fetch(`${API_BASE_URL}/rubric-generator`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -708,7 +710,7 @@ export default function App() {
         .filter(st => st.status !== 'Pending' && st.code)
         .map(st => ({ student_id: st.id, answer_text: st.code }));
 
-      const response = await fetch('http://localhost:8000/evaluation-assistant', {
+      const response = await fetch(`${API_BASE_URL}/evaluation-assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -796,7 +798,7 @@ export default function App() {
     }));
 
     try {
-      const response = await fetch('http://localhost:8000/chat-assistant', {
+      const response = await fetch(`${API_BASE_URL}/chat-assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
