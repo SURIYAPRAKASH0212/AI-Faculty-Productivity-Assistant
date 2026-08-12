@@ -1,0 +1,24 @@
+# Python cache and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints
+.pytest_cache/
+env/
+venv/
+ENV/
+.env
+*.db
+
+# Node.js
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# System/IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
