@@ -61,6 +61,18 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+const safeParseJson = async (response) => {
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('text/html')) {
+    throw new Error('The server returned an HTML page (likely the frontend site) instead of API data. Please ensure the API URL points to the running backend service, not the frontend website.');
+  }
+  try {
+    return await response.json();
+  } catch (e) {
+    throw new Error('The server returned an invalid response format. Please verify that the API URL points to the backend service.');
+  }
+};
+
 const renderMarkdown = (text) => {
   if (!text) return null;
   // Replace literal \n string escapes if they somehow still exist
@@ -277,7 +289,7 @@ export default function App() {
           password: authPassword
         })
       });
-      const data = await res.json();
+      const data = await safeParseJson(res);
       if (!res.ok) {
         throw new Error(data.detail || 'Login failed');
       }
@@ -291,7 +303,7 @@ export default function App() {
     } catch (err) {
       setAuthError(err.message);
       showToast(err.message, 'error');
-      if (err.message.toLowerCase().includes('failed to fetch')) {
+      if (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('html page')) {
         setShowServerConfig(true);
       }
     } finally {
@@ -322,7 +334,7 @@ export default function App() {
           department: authDept
         })
       });
-      const data = await res.json();
+      const data = await safeParseJson(res);
       if (!res.ok) {
         throw new Error(data.detail || 'Registration failed');
       }
@@ -334,7 +346,7 @@ export default function App() {
     } catch (err) {
       setAuthError(err.message);
       showToast(err.message, 'error');
-      if (err.message.toLowerCase().includes('failed to fetch')) {
+      if (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('html page')) {
         setShowServerConfig(true);
       }
     } finally {
@@ -981,6 +993,11 @@ export default function App() {
                     If your backend is hosted on Render, configure the API URL below.
                   </p>
                 )}
+                {authError.toLowerCase().includes('html page') && (
+                  <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
+                    Your API URL is pointing to your frontend site (which serves HTML). You must enter your **FastAPI Backend Web Service URL** from Render (e.g. <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">https://your-backend.onrender.com</code>) without a port number.
+                  </p>
+                )}
               </div>
             )}
 
@@ -1108,6 +1125,11 @@ export default function App() {
                   <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
                     Could not connect to the backend server at <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>. 
                     If your backend is hosted on Render, configure the API URL below.
+                  </p>
+                )}
+                {authError.toLowerCase().includes('html page') && (
+                  <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
+                    Your API URL is pointing to your frontend site (which serves HTML). You must enter your **FastAPI Backend Web Service URL** from Render (e.g. <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">https://your-backend.onrender.com</code>) without a port number.
                   </p>
                 )}
               </div>
