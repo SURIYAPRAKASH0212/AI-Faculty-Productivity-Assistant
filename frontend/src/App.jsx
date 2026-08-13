@@ -54,7 +54,18 @@ const getApiBaseUrl = () => {
   }
   const { hostname, protocol } = window.location;
   if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-    return `${protocol}//${hostname}:8000`;
+    // If it's a local network hostname or IP (e.g. 192.168.x.x, 10.x.x.x), keep the :8000 port
+    const isLocalNetwork = 
+      hostname.startsWith('192.168.') || 
+      hostname.startsWith('10.') || 
+      hostname.startsWith('172.') || 
+      hostname.endsWith('.local');
+      
+    if (isLocalNetwork) {
+      return `${protocol}//${hostname}:8000`;
+    }
+    // For production/cloud deployments (e.g. Render, Vercel), do not append port 8000
+    return `${protocol}//${hostname}`;
   }
   return 'http://localhost:8000';
 };
