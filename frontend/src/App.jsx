@@ -497,6 +497,10 @@ export default function App() {
           level: lessonFocus
         })
       });
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('The server returned an HTML page (likely the frontend site) instead of API data. Please ensure the API URL points to the running backend service, not the frontend website.');
+      }
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || 'Server error');
@@ -554,6 +558,10 @@ export default function App() {
           format: lectureFormat
         })
       });
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('The server returned an HTML page (likely the frontend site) instead of API data. Please ensure the API URL points to the running backend service, not the frontend website.');
+      }
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || 'Server error');
@@ -611,6 +619,10 @@ export default function App() {
           style: presStyle
         })
       });
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('The server returned an HTML page (likely the frontend site) instead of API data. Please ensure the API URL points to the running backend service, not the frontend website.');
+      }
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || 'Server error');
@@ -676,6 +688,10 @@ export default function App() {
           question_count: assessmentCount
         })
       });
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('The server returned an HTML page (likely the frontend site) instead of API data. Please ensure the API URL points to the running backend service, not the frontend website.');
+      }
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || 'Server error');
@@ -743,6 +759,10 @@ export default function App() {
           criteria_list: rubricCriteria
         })
       });
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('The server returned an HTML page (likely the frontend site) instead of API data. Please ensure the API URL points to the running backend service, not the frontend website.');
+      }
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || 'Server error');
@@ -821,6 +841,10 @@ export default function App() {
           submissions: activeSubmissions
         })
       });
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('The server returned an HTML page (likely the frontend site) instead of API data. Please ensure the API URL points to the running backend service, not the frontend website.');
+      }
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || 'Server error');
@@ -913,6 +937,10 @@ export default function App() {
           conversation_history: history
         })
       });
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('The server returned an HTML page (likely the frontend site) instead of API data. Please ensure the API URL points to the running backend service, not the frontend website.');
+      }
 
       if (!response.ok) {
         const errData = await response.json();
