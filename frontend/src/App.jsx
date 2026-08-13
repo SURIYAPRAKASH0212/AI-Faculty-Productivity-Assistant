@@ -45,6 +45,10 @@ import {
 } from 'lucide-react';
 
 const getApiBaseUrl = () => {
+  const savedUrl = localStorage.getItem('API_BASE_URL');
+  if (savedUrl) {
+    return savedUrl;
+  }
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
@@ -235,6 +239,19 @@ export default function App() {
   const [authDept, setAuthDept] = useState('AIML');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [showServerConfig, setShowServerConfig] = useState(false);
+  const [tempApiUrl, setTempApiUrl] = useState(API_BASE_URL);
+
+  const handleSaveApiUrl = (e) => {
+    if (e) e.preventDefault();
+    if (tempApiUrl.trim()) {
+      localStorage.setItem('API_BASE_URL', tempApiUrl.trim());
+      showToast('API URL updated! Reloading...', 'success');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  };
 
   const getUserInitials = (name) => {
     if (!name) return '??';
@@ -274,6 +291,9 @@ export default function App() {
     } catch (err) {
       setAuthError(err.message);
       showToast(err.message, 'error');
+      if (err.message.toLowerCase().includes('failed to fetch')) {
+        setShowServerConfig(true);
+      }
     } finally {
       setAuthLoading(false);
     }
@@ -314,6 +334,9 @@ export default function App() {
     } catch (err) {
       setAuthError(err.message);
       showToast(err.message, 'error');
+      if (err.message.toLowerCase().includes('failed to fetch')) {
+        setShowServerConfig(true);
+      }
     } finally {
       setAuthLoading(false);
     }
@@ -947,9 +970,17 @@ export default function App() {
             </div>
 
             {authError && (
-              <div className="p-3.5 mb-5 bg-red-50 border border-red-150 text-red-700 text-xs rounded-xl flex items-center gap-2">
-                <AlertTriangle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
-                <span>{authError}</span>
+              <div className="p-3.5 mb-5 bg-red-50 border border-red-150 text-red-700 text-xs rounded-xl flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
+                  <span className="font-semibold">{authError}</span>
+                </div>
+                {authError.toLowerCase().includes('failed to fetch') && (
+                  <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
+                    Could not connect to the backend server at <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>. 
+                    If your backend is hosted on Render, configure the API URL below.
+                  </p>
+                )}
               </div>
             )}
 
@@ -1016,6 +1047,45 @@ export default function App() {
                 </button>
               </p>
             </div>
+
+            {/* Server Settings Widget */}
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center">
+              <button
+                type="button"
+                onClick={() => setShowServerConfig(!showServerConfig)}
+                className="text-[10px] text-slate-400 hover:text-[#6C5CE7] transition-colors flex items-center gap-1 font-medium"
+              >
+                <SettingsIcon className="w-3.5 h-3.5 text-slate-400" />
+                Configure API Server URL
+              </button>
+
+              {showServerConfig && (
+                <div className="w-full mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-left">
+                  <label className="text-[10px] font-bold text-slate-500 block">
+                    API Server Base URL
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={tempApiUrl}
+                      onChange={(e) => setTempApiUrl(e.target.value)}
+                      placeholder="https://your-api.onrender.com"
+                      className="flex-1 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#6C5CE7]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveApiUrl}
+                      className="px-3 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-slate-400 leading-normal">
+                    Currently: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           /* CREATE ACCOUNT CARD */
@@ -1029,9 +1099,17 @@ export default function App() {
             </div>
 
             {authError && (
-              <div className="p-3.5 mb-4 bg-red-50 border border-red-150 text-red-700 text-xs rounded-xl flex items-center gap-2">
-                <AlertTriangle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
-                <span>{authError}</span>
+              <div className="p-3.5 mb-4 bg-red-50 border border-red-150 text-red-700 text-xs rounded-xl flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
+                  <span className="font-semibold">{authError}</span>
+                </div>
+                {authError.toLowerCase().includes('failed to fetch') && (
+                  <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
+                    Could not connect to the backend server at <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>. 
+                    If your backend is hosted on Render, configure the API URL below.
+                  </p>
+                )}
               </div>
             )}
 
@@ -1129,6 +1207,45 @@ export default function App() {
                   Sign In
                 </button>
               </p>
+            </div>
+
+            {/* Server Settings Widget */}
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center">
+              <button
+                type="button"
+                onClick={() => setShowServerConfig(!showServerConfig)}
+                className="text-[10px] text-slate-400 hover:text-[#6C5CE7] transition-colors flex items-center gap-1 font-medium"
+              >
+                <SettingsIcon className="w-3.5 h-3.5 text-slate-400" />
+                Configure API Server URL
+              </button>
+
+              {showServerConfig && (
+                <div className="w-full mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-left">
+                  <label className="text-[10px] font-bold text-slate-500 block">
+                    API Server Base URL
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={tempApiUrl}
+                      onChange={(e) => setTempApiUrl(e.target.value)}
+                      placeholder="https://your-api.onrender.com"
+                      className="flex-1 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#6C5CE7]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveApiUrl}
+                      className="px-3 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-slate-400 leading-normal">
+                    Currently: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
