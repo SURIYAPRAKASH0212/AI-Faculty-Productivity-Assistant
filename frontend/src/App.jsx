@@ -61,6 +61,13 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+const getFriendlyErrorMessage = (errorMsg) => {
+  if (errorMsg && (errorMsg.toLowerCase().includes('failed to fetch') || errorMsg.toLowerCase().includes('networkerror') || errorMsg.toLowerCase().includes('load failed') || errorMsg.toLowerCase().includes('failed to connect'))) {
+    return 'Failed to connect to backend server. Make sure the backend FastAPI service is running (e.g., uvicorn main:app --reload) and that the API Server URL in your settings is correct.';
+  }
+  return errorMsg;
+};
+
 const safeParseJson = async (response) => {
   const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('text/html')) {
@@ -273,6 +280,15 @@ export default function App() {
         window.location.reload();
       }, 1000);
     }
+  };
+
+  const handleResetApiUrl = (e) => {
+    if (e) e.preventDefault();
+    localStorage.removeItem('API_BASE_URL');
+    showToast('API URL reset to default! Reloading...', 'success');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   const getUserInitials = (name) => {
@@ -488,8 +504,12 @@ export default function App() {
       });
       showToast('Lesson plan generated successfully!');
     } catch (err) {
-      setLessonError(err.message);
-      showToast(`Generation failed: ${err.message}`, 'error');
+      const friendlyMsg = getFriendlyErrorMessage(err.message);
+      setLessonError(friendlyMsg);
+      showToast(`Generation failed: ${friendlyMsg}`, 'error');
+      if (err.message && (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror'))) {
+        setShowServerConfig(true);
+      }
     } finally {
       setLessonGenerating(false);
     }
@@ -540,8 +560,12 @@ export default function App() {
       });
       showToast('Lecture notes compiled successfully!');
     } catch (err) {
-      setLectureError(err.message);
-      showToast(`Lecture notes failed: ${err.message}`, 'error');
+      const friendlyMsg = getFriendlyErrorMessage(err.message);
+      setLectureError(friendlyMsg);
+      showToast(`Lecture notes failed: ${friendlyMsg}`, 'error');
+      if (err.message && (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror'))) {
+        setShowServerConfig(true);
+      }
     } finally {
       setLectureGenerating(false);
     }
@@ -592,8 +616,12 @@ export default function App() {
       setGeneratedSlides(formatted);
       showToast('Slides layout drafted!');
     } catch (err) {
-      setPresError(err.message);
-      showToast(`Slides build failed: ${err.message}`, 'error');
+      const friendlyMsg = getFriendlyErrorMessage(err.message);
+      setPresError(friendlyMsg);
+      showToast(`Slides build failed: ${friendlyMsg}`, 'error');
+      if (err.message && (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror'))) {
+        setShowServerConfig(true);
+      }
     } finally {
       setPresGenerating(false);
     }
@@ -654,8 +682,12 @@ export default function App() {
       setGeneratedAssessment(formatted);
       showToast('Assessment generated successfully!');
     } catch (err) {
-      setAssessmentError(err.message);
-      showToast(`Assessment creation failed: ${err.message}`, 'error');
+      const friendlyMsg = getFriendlyErrorMessage(err.message);
+      setAssessmentError(friendlyMsg);
+      showToast(`Assessment creation failed: ${friendlyMsg}`, 'error');
+      if (err.message && (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror'))) {
+        setShowServerConfig(true);
+      }
     } finally {
       setAssessmentGenerating(false);
     }
@@ -732,8 +764,12 @@ export default function App() {
       });
       showToast('Grading rubric table compiled successfully!');
     } catch (err) {
-      setRubricError(err.message);
-      showToast(`Rubric generation failed: ${err.message}`, 'error');
+      const friendlyMsg = getFriendlyErrorMessage(err.message);
+      setRubricError(friendlyMsg);
+      showToast(`Rubric generation failed: ${friendlyMsg}`, 'error');
+      if (err.message && (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror'))) {
+        setShowServerConfig(true);
+      }
     } finally {
       setRubricGenerating(false);
     }
@@ -801,8 +837,12 @@ export default function App() {
       }
       showToast(`Evaluated ${data.results.length} submissions concurrently!`);
     } catch (err) {
-      setEvalError(err.message);
-      showToast(`Evaluation failed: ${err.message}`, 'error');
+      const friendlyMsg = getFriendlyErrorMessage(err.message);
+      setEvalError(friendlyMsg);
+      showToast(`Evaluation failed: ${friendlyMsg}`, 'error');
+      if (err.message && (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror'))) {
+        setShowServerConfig(true);
+      }
     } finally {
       setEvaluating(false);
     }
@@ -928,8 +968,12 @@ export default function App() {
       }
     } catch (err) {
       setChatLoading(false);
-      setChatError(err.message);
-      showToast(`Chat failed: ${err.message}`, 'error');
+      const friendlyMsg = getFriendlyErrorMessage(err.message);
+      setChatError(friendlyMsg);
+      showToast(`Chat failed: ${friendlyMsg}`, 'error');
+      if (err.message && (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror'))) {
+        setShowServerConfig(true);
+      }
       
       // Cleanup empty bubble if message generation aborted early
       setChatMessages(prev => {
@@ -1054,13 +1098,22 @@ export default function App() {
                 placeholder="https://your-api.onrender.com"
                 className="flex-1 min-w-0 px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] focus:outline-none focus:border-[#6C5CE7]"
               />
-              <button
-                type="button"
-                onClick={handleSaveApiUrl}
-                className="px-2 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors"
-              >
-                Save
-              </button>
+              <div className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={handleSaveApiUrl}
+                  className="px-2 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetApiUrl}
+                  className="px-2 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-[9px] font-semibold rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Reset
+                </button>
+              </div>
             </div>
             <p className="text-[8px] text-slate-400 leading-normal break-all font-mono">
               API: {API_BASE_URL}
@@ -1165,13 +1218,22 @@ export default function App() {
                     placeholder="https://your-api.onrender.com"
                     className="flex-1 min-w-0 px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] focus:outline-none focus:border-[#6C5CE7]"
                   />
-                  <button
-                    type="button"
-                    onClick={handleSaveApiUrl}
-                    className="px-2 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors"
-                  >
-                    Save
-                  </button>
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={handleSaveApiUrl}
+                      className="px-2 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors whitespace-nowrap"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetApiUrl}
+                      className="px-2 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-[9px] font-semibold rounded-lg transition-colors whitespace-nowrap"
+                    >
+                      Reset
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[8px] text-slate-400 leading-normal break-all font-mono">
                   API: {API_BASE_URL}
