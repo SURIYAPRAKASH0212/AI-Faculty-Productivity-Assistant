@@ -236,19 +236,9 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem('currentUser');
-      return saved ? JSON.parse(saved) : {
-        id: 1,
-        name: 'Dr. Suriya',
-        email: 'suriya22714@gmail.com',
-        department: 'AIML'
-      };
+      return saved ? JSON.parse(saved) : null;
     } catch (e) {
-      return {
-        id: 1,
-        name: 'Dr. Suriya',
-        email: 'suriya22714@gmail.com',
-        department: 'AIML'
-      };
+      return null;
     }
   });
   const [token, setToken] = useState(() => localStorage.getItem('token') || '');
@@ -957,7 +947,333 @@ export default function App() {
     return toolsList.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.desc.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [searchQuery]);
 
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-brand-bg text-slate-800 flex items-center justify-center font-sans antialiased relative overflow-hidden">
+        {/* Toast notifications portal */}
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm w-full">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className={`flex items-center gap-3 p-4 rounded-xl border shadow-lg bg-white ${t.type === 'error' ? 'border-red-100 text-red-700' :
+                  t.type === 'info' ? 'border-blue-100 text-blue-700' :
+                    'border-emerald-100 text-emerald-700'
+                }`}
+            >
+              <CheckCircle2 className={`w-5 h-5 flex-shrink-0 ${t.type === 'error' ? 'text-red-500' : t.type === 'info' ? 'text-blue-500' : 'text-[#2ECC71]'}`} />
+              <span className="text-sm font-medium">{t.message}</span>
+            </div>
+          ))}
+        </div>
 
+        {/* Decorative Gradients */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-200/30 rounded-full filter blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-200/30 rounded-full filter blur-3xl translate-x-1/2 translate-y-1/2"></div>
+
+        {authView === 'login' ? (
+          /* LOGIN CARD */
+          <div className="w-full max-w-md bg-white border border-slate-100 rounded-3xl p-8 shadow-xl shadow-slate-100 relative z-10 transition-all">
+            <div className="flex flex-col items-center text-center space-y-2 mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-[#6C5CE7] flex items-center justify-center text-white shadow-md shadow-[#6C5CE7]/30">
+                <Sparkles className="w-6 h-6 animate-pulse" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Faculty AI Assistant</h3>
+              <p className="text-xs text-slate-400">Sign in to access your academic productivity suite</p>
+            </div>
+
+            {authError && (
+              <div className="p-3.5 mb-5 bg-red-50 border border-red-150 text-red-700 text-xs rounded-xl flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
+                  <span className="font-semibold">{authError}</span>
+                </div>
+                {authError.toLowerCase().includes('failed to fetch') && (
+                  <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
+                    Could not connect to the backend server at <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>. 
+                    If your backend is hosted on Render, configure the API URL below.
+                  </p>
+                )}
+                {authError.toLowerCase().includes('html page') && (
+                  <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
+                    Your API URL is pointing to your frontend site (which serves HTML). You must enter your **FastAPI Backend Web Service URL** from Render (e.g. <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">https://your-backend.onrender.com</code>) without a port number.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  Academic Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="e.g. professor@university.edu"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#6C5CE7] focus:bg-white"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#6C5CE7] focus:bg-white"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full py-3 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-[#6C5CE7]/15 disabled:opacity-50"
+              >
+                {authLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Signing In...
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+              <p className="text-xs text-slate-500">
+                New to the platform?{' '}
+                <button
+                  onClick={() => {
+                    setAuthView('register');
+                    setAuthError(null);
+                  }}
+                  className="font-bold text-[#6C5CE7] hover:underline"
+                >
+                  Create Account
+                </button>
+              </p>
+            </div>
+
+            {/* Server Settings Widget */}
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center">
+              <button
+                type="button"
+                onClick={() => setShowServerConfig(!showServerConfig)}
+                className="text-[10px] text-slate-400 hover:text-[#6C5CE7] transition-colors flex items-center gap-1 font-medium"
+              >
+                <SettingsIcon className="w-3.5 h-3.5 text-slate-400" />
+                Configure API Server URL
+              </button>
+
+              {showServerConfig && (
+                <div className="w-full mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-left">
+                  <label className="text-[10px] font-bold text-slate-500 block">
+                    API Server Base URL
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={tempApiUrl}
+                      onChange={(e) => setTempApiUrl(e.target.value)}
+                      placeholder="https://your-api.onrender.com"
+                      className="flex-1 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#6C5CE7]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveApiUrl}
+                      className="px-3 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-slate-400 leading-normal">
+                    Currently: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* CREATE ACCOUNT CARD */
+          <div className="w-full max-w-md bg-white border border-slate-100 rounded-3xl p-8 shadow-xl shadow-slate-100 relative z-10 transition-all">
+            <div className="flex flex-col items-center text-center space-y-2 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-[#6C5CE7] flex items-center justify-center text-white shadow-md shadow-[#6C5CE7]/30">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">Create Account</h3>
+              <p className="text-xs text-slate-400">Register your academic profile to get started</p>
+            </div>
+
+            {authError && (
+              <div className="p-3.5 mb-4 bg-red-50 border border-red-150 text-red-700 text-xs rounded-xl flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
+                  <span className="font-semibold">{authError}</span>
+                </div>
+                {authError.toLowerCase().includes('failed to fetch') && (
+                  <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
+                    Could not connect to the backend server at <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>. 
+                    If your backend is hosted on Render, configure the API URL below.
+                  </p>
+                )}
+                {authError.toLowerCase().includes('html page') && (
+                  <p className="text-[10px] text-red-600 pl-6 leading-relaxed">
+                    Your API URL is pointing to your frontend site (which serves HTML). You must enter your **FastAPI Backend Web Service URL** from Render (e.g. <code className="bg-red-100/50 px-1 py-0.5 rounded font-mono break-all">https://your-backend.onrender.com</code>) without a port number.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <form onSubmit={handleRegister} className="space-y-3.5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-slate-400" />
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Dr. John Doe"
+                  value={authName}
+                  onChange={(e) => setAuthName(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#6C5CE7] focus:bg-white"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  Academic Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="e.g. jdoe@university.edu"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#6C5CE7] focus:bg-white"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-slate-400" />
+                  Academic Department
+                </label>
+                <select
+                  value={authDept}
+                  onChange={(e) => setAuthDept(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#6C5CE7] bg-white"
+                >
+                  <option value="AIML">AIML Dept</option>
+                  <option value="Computer Science">Computer Science Dept</option>
+                  <option value="Information Technology">Information Technology Dept</option>
+                  <option value="Electrical Engineering">Electrical Engineering Dept</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="At least 6 characters"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#6C5CE7] focus:bg-white"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full py-3 mt-2 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-[#6C5CE7]/15 disabled:opacity-50"
+              >
+                {authLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    Create Account
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+              <p className="text-xs text-slate-500">
+                Already have an account?{' '}
+                <button
+                  onClick={() => {
+                    setAuthView('login');
+                    setAuthError(null);
+                  }}
+                  className="font-bold text-[#6C5CE7] hover:underline"
+                >
+                  Sign In
+                </button>
+              </p>
+            </div>
+
+            {/* Server Settings Widget */}
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center">
+              <button
+                type="button"
+                onClick={() => setShowServerConfig(!showServerConfig)}
+                className="text-[10px] text-slate-400 hover:text-[#6C5CE7] transition-colors flex items-center gap-1 font-medium"
+              >
+                <SettingsIcon className="w-3.5 h-3.5 text-slate-400" />
+                Configure API Server URL
+              </button>
+
+              {showServerConfig && (
+                <div className="w-full mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-left">
+                  <label className="text-[10px] font-bold text-slate-500 block">
+                    API Server Base URL
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={tempApiUrl}
+                      onChange={(e) => setTempApiUrl(e.target.value)}
+                      placeholder="https://your-api.onrender.com"
+                      className="flex-1 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-[#6C5CE7]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveApiUrl}
+                      className="px-3 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-slate-400 leading-normal">
+                    Currently: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono break-all">{API_BASE_URL}</code>
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-brand-bg text-slate-800 flex font-sans antialiased selection:bg-[#6C5CE7]/20 relative">
@@ -1031,43 +1347,6 @@ export default function App() {
           })}
         </nav>
 
-        {/* API URL Config inline in sidebar */}
-        {showServerConfig && (
-          <div className="mx-4 mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold text-slate-500 block">
-                API Server URL
-              </label>
-              <button 
-                type="button" 
-                onClick={() => setShowServerConfig(false)}
-                className="text-slate-400 hover:text-slate-600 text-xs"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex gap-1.5">
-              <input
-                type="text"
-                value={tempApiUrl}
-                onChange={(e) => setTempApiUrl(e.target.value)}
-                placeholder="https://your-api.onrender.com"
-                className="flex-1 min-w-0 px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] focus:outline-none focus:border-[#6C5CE7]"
-              />
-              <button
-                type="button"
-                onClick={handleSaveApiUrl}
-                className="px-2 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors"
-              >
-                Save
-              </button>
-            </div>
-            <p className="text-[8px] text-slate-400 leading-normal break-all font-mono">
-              API: {API_BASE_URL}
-            </p>
-          </div>
-        )}
-
         {/* User Profile */}
         <div className="p-4 border-t border-brand-border flex items-center justify-between mt-auto">
           <div className="flex items-center gap-3">
@@ -1080,11 +1359,11 @@ export default function App() {
             </div>
           </div>
           <button 
-            onClick={() => setShowServerConfig(!showServerConfig)}
-            className="p-1.5 text-slate-400 hover:text-[#6C5CE7] rounded-lg transition-colors focus:outline-none"
-            title="Configure Server URL"
+            onClick={handleLogout}
+            className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors focus:outline-none"
+            title="Log Out"
           >
-            <SettingsIcon className="w-4.5 h-4.5" />
+            <LogOut className="w-4.5 h-4.5" />
           </button>
         </div>
       </aside>
@@ -1142,43 +1421,6 @@ export default function App() {
                 );
               })}
             </nav>
-            {/* API URL Config inline in sidebar (Mobile) */}
-            {showServerConfig && (
-              <div className="mx-4 mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-slate-500 block">
-                    API Server URL
-                  </label>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowServerConfig(false)}
-                    className="text-slate-400 hover:text-slate-600 text-xs"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="flex gap-1.5">
-                  <input
-                    type="text"
-                    value={tempApiUrl}
-                    onChange={(e) => setTempApiUrl(e.target.value)}
-                    placeholder="https://your-api.onrender.com"
-                    className="flex-1 min-w-0 px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] focus:outline-none focus:border-[#6C5CE7]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSaveApiUrl}
-                    className="px-2 py-1 bg-[#6C5CE7] hover:bg-[#5b4ed6] text-white text-[10px] font-bold rounded-lg transition-colors"
-                  >
-                    Save
-                  </button>
-                </div>
-                <p className="text-[8px] text-slate-400 leading-normal break-all font-mono">
-                  API: {API_BASE_URL}
-                </p>
-              </div>
-            )}
-
             <div className="p-4 border-t border-brand-border flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-[#6C5CE7]">
                 {getUserInitials(currentUser?.name)}
@@ -1188,11 +1430,11 @@ export default function App() {
                 <span className="text-[10px] text-slate-400">{currentUser?.department} Dept</span>
               </div>
               <button 
-                onClick={() => setShowServerConfig(!showServerConfig)}
-                className="p-1.5 text-slate-400 hover:text-[#6C5CE7] rounded-lg transition-colors focus:outline-none"
-                title="Configure Server URL"
+                onClick={handleLogout}
+                className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors focus:outline-none"
+                title="Log Out"
               >
-                <SettingsIcon className="w-4.5 h-4.5" />
+                <LogOut className="w-4.5 h-4.5" />
               </button>
             </div>
           </aside>
