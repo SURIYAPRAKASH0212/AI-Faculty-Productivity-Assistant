@@ -92,6 +92,26 @@ The frontend client will run on [http://localhost:5173](http://localhost:5173).
 
 ---
 
+## ☁️ Cloud Deployment (Render Blueprint)
+
+You can deploy the entire stack (both React frontend and FastAPI backend) on Render with a single click using the Blueprint configuration:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SURIYAPRAKASH0212/AI-Faculty-Productivity-Assistant)
+
+### Manual Blueprint Steps:
+1. Go to your [Render Dashboard](https://dashboard.render.com/).
+2. Click **New +** and select **Blueprint**.
+3. Connect this GitHub repository.
+4. Render will automatically read the `render.yaml` file and configure:
+   - The Python FastAPI backend service.
+   - The React frontend static site.
+   - It will ask you to enter your `GEMINI_API_KEY` environment variable.
+5. Click **Apply**.
+
+Render will build and link both services automatically. Once deployed, the frontend will be fully functional without needing any manual configuration changes!
+
+---
+
 ## 📝 License
 
 This project is open-source. Feel free to use, modify, and distribute it for academic or institutional purposes.

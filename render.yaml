@@ -1,0 +1,27 @@
+services:
+  # 1. FastAPI Python Backend Web Service
+  - type: web
+    name: ai-faculty-productivity-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_MODEL_NAME
+        value: gemini-3.5-flash
+      - key: GEMINI_API_KEY
+        sync: false  # Render will prompt the user to paste their API key on deployment
+    rootDir: backend
+
+  # 2. React Vite Static Frontend Website
+  - type: web
+    name: ai-faculty-productivity-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    rootDir: frontend
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: ai-faculty-productivity-backend
+          type: web
+          property: host
